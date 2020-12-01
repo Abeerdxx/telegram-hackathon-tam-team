@@ -19,7 +19,9 @@ create table parentsQuestionsQueue(
 );
 
 create table QA(
+    chat_id varchar(100),
     answer varchar(200),
-    question varchar(200) primary key,
-	keywords varchar(200)
+    question varchar(200),
+	keywords varchar(200),
+	FOREIGN KEY (chat_id) REFERENCES users(chat_id)
 );
