@@ -4,3 +4,5 @@ Lib
 Scripts
 *.cfg
 config.py
+__pycache__
+venv
