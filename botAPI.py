@@ -4,21 +4,17 @@ from parent import ask_question
 from teacher import *
 
 
-def what_can_i_do(chat_id):
-    with connection.cursor() as cursor:
-        query = f"SELECT * FROM users WHERE chat_id = {chat_id}"
-        cursor.execute(query)
-        result = cursor.fetchone()
-        if result is not None:
-            if result["role"] == "teacher":
-                requests.get(
-                    TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
-                                                                     "/answer_question where you can answer a "
-                                                                     "question that does not have an answer in the "
-                                                                     "FAQ\n "
-                                                                     "/add_announcement where you can send an "
-                                                                     "announcement to every parent in the class you "
-                                                                     "are in\n"))
+def what_can_i_do(chat_id, role):
+    if role == "teacher":
+        requests.get(
+            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
+                                                             "/answer_question where you can answer a "
+                                                             "question that does not have an answer in the "
+                                                             "FAQ\n "
+                                                             "/add_announcement where you can send an "
+                                                             "announcement to every parent in the class you "
+                                                             "are in\n"
+                                                             "/add_question "))
 
 
 def parse_command(com, chat_id):
