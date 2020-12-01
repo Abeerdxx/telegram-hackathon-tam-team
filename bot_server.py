@@ -1,5 +1,5 @@
 from flask import Flask, request, Response
-from .config import TELEGRAM_INIT_WEBHOOK_URL
+from config import TELEGRAM_INIT_WEBHOOK_URL
 import requests
 
 app = Flask(__name__)
