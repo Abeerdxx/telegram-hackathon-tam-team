@@ -4,6 +4,7 @@ import requests
 
 def ask_question(question, chat_id):
     with connection.cursor() as cursor:
+        question = "'" + question + "'"
         query = f"SELECT answer FROM QA WHERE question = {question}"
         cursor.execute(query)
         res = cursor.fetchone()
