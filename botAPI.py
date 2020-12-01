@@ -1,13 +1,15 @@
 import requests
 from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
 from parent import ask_question
+from teacher import *
+
 role = None
 class_ = None
 
 
 def parse_command(com, chat_id):
     global role, class_
-    parsed = com.split(" ", 1) #maxsplit = 1
+    parsed = com.split(" ", 1)  # maxsplit = 1
     first_command = parsed[0]
     if first_command == "/start":
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
@@ -18,15 +20,21 @@ def parse_command(com, chat_id):
     elif first_command == "class":
         class_ = parsed[1]
         add_user(chat_id)
-    elif first_command == "#answer":
+    elif first_command == "/answer":
         if role == "parent":
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
+        else:
+            answer_the_last_question(parsed[1], chat_id)
     elif first_command == "/ask_question":
         if len(parsed) <= 1:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "improper format"))
         else:
-            parsed[1] = parsed[1].replace('?', "")
             ask_question(parsed[1], chat_id)
+    elif first_command == "/answer_question":
+        if role == "parent":
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
+        else:
+            answer_question(chat_id)
     return ""
 
 

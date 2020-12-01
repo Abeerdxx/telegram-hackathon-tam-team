@@ -11,7 +11,7 @@ def answer_question(teacher_chat_id):
         if result is not None:
             ques = "'" + result['question'] + "'"
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, result['question']) +
-                         "\n write #answer to answer the question")
+                         "\nwrite /answer to answer the question")
             query2 = f"INSERT INTO parentsQuestionsQueue VALUES({result['chat_id']},{ques})"
             cursor.execute(query2)
             query3 = f"DELETE FROM parentsQuestions WHERE question = {ques}"
