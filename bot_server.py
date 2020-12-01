@@ -10,8 +10,13 @@ requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 @app.route('/message', methods=["POST"])
 def handle_message():
-    chat_id = request.get_json()['message']['chat']['id']
-    res = requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, parse_command(request.get_json()['message']['text'], chat_id)))
+    if request.get_json().get('edited_message'):
+        msg = request.get_json()['edited_message']['text']
+        chat_id = request.get_json()['edited_message']['chat']['id']
+    else:
+        msg = request.get_json()['message']['text']
+        chat_id = request.get_json()['message']['chat']['id']
+    res = requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, parse_command(msg, chat_id)))
     return Response("success")
 
 
