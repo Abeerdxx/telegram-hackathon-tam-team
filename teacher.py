@@ -47,7 +47,7 @@ def answer_the_last_question(answer, teacher_chat_id):
 def add_question(question, teacher_chat_id):
     global the_question_to_answer
     with connection.cursor() as cursor:
-        query = f"SELECT * FROM QA WHERE question='{question}'"
+        query = f"SELECT * FROM QA WHERE question='{question}' and chat_id={teacher_chat_id}"
         cursor.execute(query)
         result = cursor.fetchone()
         if result is None:
@@ -61,20 +61,20 @@ def add_question(question, teacher_chat_id):
 def answer_add_question(answer, chat_id):
     global the_question_to_answer
     with connection.cursor() as cursor:
-        query = f"SELECT * FROM QA WHERE question='{the_question_to_answer}'"
+        query = f"SELECT * FROM QA WHERE question='{the_question_to_answer}' and chat_id={chat_id}"
         cursor.execute(query)
         result = cursor.fetchone()
         if result is None:
-            query = f"INSERT INTO QA VALUES('{answer}', '{the_question_to_answer}' , '{the_question_to_answer}')"
+            query = f"INSERT INTO QA VALUES({chat_id}, '{answer}', '{the_question_to_answer}' , '{the_question_to_answer}')"
             cursor.execute(query)
             connection.commit()
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "question added successfully!"))
     the_question_to_answer = ''
 
 
-def add_announcement(announcement):
+def add_announcement(announcement, class_):
     with connection.cursor() as cursor:
-        query = "SELECT chat_id FROM users WHERE role = 'parent'"
+        query = f"SELECT chat_id FROM users WHERE role = 'parent' and class = {class_}"
         cursor.execute(query)
         result = cursor.fetchall()
         if result:
