@@ -75,7 +75,7 @@ def parse_command(com, chat_id):
             if len(parsed) <= 1:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "improper format"))
             else:
-                add_announcement(parsed[1])
+                add_announcement(parsed[1], class_)
     else:
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "unavailable command"))
     return ""
