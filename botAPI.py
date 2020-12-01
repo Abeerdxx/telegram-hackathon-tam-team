@@ -17,7 +17,7 @@ def what_can_i_do(chat_id, role):
                                              "/add_announcement <Announcement> to send, where you can send an "
                                              "announcement to every parent in the class you "
                                              "are in\n"
-                                             "/add_question <Question> to add"))
+                                             "/add_question <Question> to add general question"))
     else:
         requests.get(
             TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
@@ -25,7 +25,7 @@ def what_can_i_do(chat_id, role):
                                                              " question and get answer right away!!"))
 
 
-def parse_command(com, chat_id):
+def parse_command(com, chat_id,name):
     global role_
     class_ = None
     role = None
@@ -42,15 +42,18 @@ def parse_command(com, chat_id):
             role = role_
     if first_command == "/start":
         start(chat_id)
-    elif first_command == "teacher" or first_command == "parent":
+    elif first_command.lower() == "teacher" or first_command.lower() == "parent":
         role_ = first_command
-        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\nPS :- write class and number"))
-    elif first_command == "class":
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\n write class <number>\n"
+                                                                      "so I can know to which class I should add you 😉"))
+    elif first_command.lower() == "class":
         class_ = parsed[1]
         add_user(chat_id, role_, class_)
         requests.get(
-            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! you have been registered as"
-                                                             " " + role_ + " with class " + class_))
+            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
+                                                             " " + role_ + " In class " + class_))
+
+        what_can_i_do(chat_id, role_)
     elif first_command == "/answer":
         if role == "parent":
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
@@ -98,7 +101,13 @@ def parse_command(com, chat_id):
                                                                               "and after it your announcement"))
             else:
                 add_announcement(parsed[1], class_)
+    elif first_command.lower() == "hello" or first_command.lower() == "hey" or first_command.lower() == "hi" or first_command.lower() == "sup":
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, f"Hey!! {name},\n"
+                                                                      "My name is Tam how can I help you? \n"
+                                                                      "for your role you can do the following:\n "))
+        what_can_i_do(chat_id, role)
     else:
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
         what_can_i_do(chat_id, role)
     return ""
 
@@ -116,6 +125,9 @@ def start(chat_id):
         cursor.execute(sql, chat_id)
         result = cursor.fetchone()
         if result is not None:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?\n"
+                                                                          "it seems you are already registered.\n"
+                                                                          "Talk to technical support if you want to change register\n"
+                                                                          "Basil sgier : 0533013218"))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Are you a parent or a teacher?"))
