@@ -8,13 +8,17 @@ def what_can_i_do(chat_id, role):
     if role == "teacher":
         requests.get(
             TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
-                                                             "/answer_question where you can answer a "
+                                                             "/answer_question <answer> to add answer , where you can answer a "
                                                              "question that does not have an answer in the "
                                                              "FAQ\n "
-                                                             "/add_announcement where you can send an "
+                                                             "/add_announcement <announcement> to send, where you can send an "
                                                              "announcement to every parent in the class you "
                                                              "are in\n"
-                                                             "/add_question "))
+                                                             "/add_question <Question> to add"))
+    else:
+        requests.get(
+            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "/ask_question <Question> to ask, where you can ask"
+                                                             " question and get answer right away!! "))
 
 
 def parse_command(com, chat_id):
@@ -37,6 +41,9 @@ def parse_command(com, chat_id):
     elif first_command == "class":
         class_ = parsed[1]
         add_user(chat_id, role, class_)
+        requests.get(
+            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! you have been registered as"
+                                                             " " + role + f" with class {class_}"))
     elif first_command == "/answer":
         if role == "parent":
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
