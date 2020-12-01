@@ -35,7 +35,7 @@ def answer_the_last_question(answer, teacher_chat_id):
                                                  + answer))
             answer = "'" + answer + "'"
             ques = "'" + result['question'] + "'"
-            query2 = f"INSERT INTO QA VALUES({answer}, {ques}, {ques})"
+            query2 = f"INSERT INTO QA VALUES({teacher_chat_id}, {answer}, {ques}, {ques})"
             cursor.execute(query2)
             query3 = f"DELETE FROM parentsQuestionsQueue WHERE question = {ques}"
             cursor.execute(query3)
