@@ -7,12 +7,28 @@ role = None
 class_ = None
 
 
+def what_can_i_do(chat_id):
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM users WHERE chat_id = {chat_id}"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            if result["role"] == "teacher":
+                requests.get(
+                    TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
+                                                                     "/answer_question where you can answer a "
+                                                                     "question that does not have an answer in the "
+                                                                     "FAQ\n "
+                                                                     "/add_announcement where you can send an "
+                                                                     "announcement to every parent in the class you "
+                                                                     "are in\n"))
+
+
 def parse_command(com, chat_id):
     global role, class_
     parsed = com.split(" ", 1)  # maxsplit = 1
     first_command = parsed[0]
     if first_command == "/start":
-        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
         start(chat_id)
     elif first_command == "teacher" or first_command == "parent":
         role = first_command
@@ -53,5 +69,6 @@ def start(chat_id):
         result = cursor.fetchone()
         if result is not None:
             role = result['role']
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Are you a parent or a teacher?"))
