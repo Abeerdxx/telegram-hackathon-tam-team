@@ -21,5 +21,5 @@ create table parentsQuestionsQueue(
 create table QA(
     answer varchar(200),
     question varchar(200) primary key,
-    keywords varchar(200)
+	keywords varchar(200)
 );
