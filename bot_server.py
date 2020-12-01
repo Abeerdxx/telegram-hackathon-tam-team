@@ -4,6 +4,7 @@ import requests
 
 app = Flask(__name__)
 
+
 requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 
