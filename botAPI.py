@@ -3,23 +3,27 @@ from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
 from parent import ask_question
 from teacher import *
 
-role = None
-class_ = None
-
 
 def parse_command(com, chat_id):
-    global role, class_
+    class_ = None
+    role = None
     parsed = com.split(" ", 1)  # maxsplit = 1
     first_command = parsed[0]
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM `users` where `chat_id`=%s"
+        cursor.execute(sql, chat_id)
+        result = cursor.fetchone()
+        if result is not None:
+            role = result['role']
+            class_ = result['class']
     if first_command == "/start":
-        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
         start(chat_id)
     elif first_command == "teacher" or first_command == "parent":
         role = first_command
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?"))
     elif first_command == "class":
         class_ = parsed[1]
-        add_user(chat_id)
+        add_user(chat_id, role, class_)
     elif first_command == "/answer":
         if role == "parent":
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
@@ -35,10 +39,36 @@ def parse_command(com, chat_id):
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
         else:
             answer_question(chat_id)
+    elif first_command == "/add_question":
+        if role == "parent":
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
+        else:
+            if len(parsed) <= 1:
+                requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "improper format"))
+            else:
+                add_question(parsed[1], chat_id)
+    elif first_command == "@answer":
+        if role == "parent":
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
+        else:
+            if len(parsed) <= 1:
+                requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "improper format"))
+            else:
+                answer_add_question(parsed[1], chat_id)
+    elif first_command == "/add_announcement":
+        if role == "parent":
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "you are a parent"))
+        else:
+            if len(parsed) <= 1:
+                requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "improper format"))
+            else:
+                add_announcement(parsed[1])
+    else:
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "unavailable command"))
     return ""
 
 
-def add_user(chat_id):
+def add_user(chat_id, role, class_):
     with connection.cursor() as cursor:
         sql = "INSERT INTO `Users` VALUES (%s,%s,%s)"
         cursor.execute(sql, (role, class_, chat_id))
@@ -46,12 +76,12 @@ def add_user(chat_id):
 
 
 def start(chat_id):
-    global role
     with connection.cursor() as cursor:
         sql = "SELECT * FROM `users` where `chat_id`=%s"
         cursor.execute(sql, chat_id)
         result = cursor.fetchone()
         if result is not None:
             role = result['role']
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?"))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Are you a parent or a teacher?"))
