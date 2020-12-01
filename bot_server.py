@@ -1,6 +1,6 @@
 from flask import Flask, request, Response
-from config import TELEGRAM_INIT_WEBHOOK_URL
-from botAPI import start
+from config import TELEGRAM_INIT_WEBHOOK_URL, TOKEN, TELEGRAM_SEND_MESSAGE_URL
+from botAPI import parse_command
 import requests
 
 app = Flask(__name__)
@@ -10,10 +10,8 @@ requests.get(TELEGRAM_INIT_WEBHOOK_URL)
 
 @app.route('/message', methods=["POST"])
 def handle_message():
-    req = request.get_json()
     chat_id = request.get_json()['message']['chat']['id']
-    start(chat_id)
-    print("got it")
+    res = requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, parse_command(request.get_json()['message']['text'], chat_id)))
     return Response("success")
 
 
