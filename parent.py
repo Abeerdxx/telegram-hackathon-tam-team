@@ -40,6 +40,13 @@ def ask_question2(question, chat_id, class_):
                 if res is not None:
                     requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, res['chat_id'], "You have a new question:\n" +
                                                                   question + "\nStart your answer with @ans"))
+                else:
+                    query = f"SELECT * FROM users WHERE job = 'teacher' and class = {class_}"
+                    cursor.execute(query)
+                    res = cursor.fetchone()
+                    if res is not None:
+                        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, res['chat_id'], "You have a new question:\n" +
+                                                                      question + "\nStart your answer with @ans"))
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "There is no answer yet, I will check with the "
                                                                           "teacher and get back to you"))
     return chat_id
