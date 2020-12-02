@@ -1,11 +1,11 @@
 import requests
 from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
-from parent import ask_question
+from parent import ask_question, ask_question2
 from teacher import *
 
 role_ = ""
 class_2 = -1
-
+asker_id_ = None
 
 def what_can_i_do(chat_id, role):
     if role == "teacher":
@@ -22,15 +22,16 @@ def what_can_i_do(chat_id, role):
     else:
         requests.get(
             TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You can do one of the following things:\n"
-                                                             "/ask_question <Question> to ask, where you can ask"
+                                                             "/ask <Question> to ask, where you can ask"
                                                              " question and get answer right away!!"))
 
 
 def parse_command(com, chat_id, name):
-    global role_
+    global role_, asker_id_
     global class_2
     class_ = None
     role = None
+    asker_id = None
     parsed = com.split(" ", 1)  # maxsplit = 1
     first_command = parsed[0]
     with connection.cursor() as cursor:
@@ -85,12 +86,18 @@ def parse_command(com, chat_id, name):
                                                                               "and after it your answer"))
             else:
                 answer_the_last_question(parsed[1], chat_id)
-    elif first_command == "/ask_question":
+    elif first_command == "/ask":
         if len(parsed) <= 1:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask_question "
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask "
                                                                           "and after it your question"))
         else:
-            ask_question(parsed[1], chat_id)
+            asker_id_ = ask_question2(parsed[1], chat_id, class_)
+    elif first_command == "@ans":
+        if len(parsed) <= 1:
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
+                                                                          "and after it your question"))
+        else:
+            return_answer_to_parent(asker_id_, parsed[1])
     elif first_command == "/answer_question":
         if role == "parent":
             requests.get(

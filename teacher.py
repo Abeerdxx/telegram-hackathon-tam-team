@@ -83,4 +83,4 @@ def add_announcement(announcement, class_):
 
 
 def return_answer_to_parent(parent_chat_id, answer):
-    requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, answer))
+    requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, "The teacher says:\n" + answer))
