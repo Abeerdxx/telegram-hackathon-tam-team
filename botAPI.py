@@ -1,9 +1,10 @@
 import requests
 from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
-from parent import ask_question, asker_id, ask_question2
+from parent import ask_question
 from teacher import *
 
 role_ = ""
+class_2 = -1
 
 
 def what_can_i_do(chat_id, role):
@@ -27,6 +28,7 @@ def what_can_i_do(chat_id, role):
 
 def parse_command(com, chat_id, name):
     global role_
+    global class_2
     class_ = None
     role = None
     parsed = com.split(" ", 1)  # maxsplit = 1
@@ -40,26 +42,39 @@ def parse_command(com, chat_id, name):
             class_ = result['class']
         else:
             role = role_
+            class_ = class_2
     if first_command == "/start":
         start(chat_id)
-    elif first_command == "@ans":
-        if len(parsed) <= 1:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
-                                                                          "and after it your answer"))
-        else:
-            return_answer_to_parent(asker_id, parsed[1])
     elif first_command.lower() == "teacher" or first_command.lower() == "parent":
-        role_ = first_command
+        role_ = first_command.lower()
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\n write class <number>\n"
                                                                       "so I can know to which class I should add you 😉"))
     elif first_command.lower() == "class":
-        class_ = parsed[1]
-        add_user(chat_id, role_, class_)
-        requests.get(
-            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
-                                                                                   " " + role_ + " In class " + class_))
-
-        what_can_i_do(chat_id, role_)
+        class_2 = parsed[1]
+        if role_ == "teacher":
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id,
+                                                 "Okay good!\nOne more thing, are you the main teacher or not ? (yes/no)"))
+        else:
+            add_user(chat_id, role_, class_2, None)
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
+                                                                                       " " + role_ + " In class " + class_2))
+            what_can_i_do(chat_id, role_)
+    elif first_command.lower() == "yes":
+        if role_ == "teacher":
+            add_user(chat_id, role_, class_2, "main teacher")
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
+                                                                            " the main teacher" + " In class " + class_2))
+            what_can_i_do(chat_id, role_)
+    elif first_command.lower() == "no":
+        if role_ == "teacher":
+            add_user(chat_id, role_, class_2, "teacher")
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
+                                                                                       " " + role_ + " In class " + class_2))
+            what_can_i_do(chat_id, role_)
     elif first_command == "/answer":
         if role == "parent":
             requests.get(
@@ -75,7 +90,7 @@ def parse_command(com, chat_id, name):
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask_question "
                                                                           "and after it your question"))
         else:
-            ask_question2(parsed[1], chat_id, class_)
+            ask_question(parsed[1], chat_id)
     elif first_command == "/answer_question":
         if role == "parent":
             requests.get(
@@ -124,10 +139,14 @@ def parse_command(com, chat_id, name):
     return ""
 
 
-def add_user(chat_id, role, class_):
+def add_user(chat_id, role, class_, has_job):
     with connection.cursor() as cursor:
-        sql = "INSERT INTO `Users` VALUES (%s,%s,%s)"
-        cursor.execute(sql, (role, class_, chat_id))
+        if has_job is None:
+            sql = "INSERT INTO `Users` VALUES (%s,%s,%s,NULL)"
+            cursor.execute(sql, (role, class_, chat_id))
+        else:
+            sql = "INSERT INTO `Users` VALUES (%s,%s,%s,%s)"
+            cursor.execute(sql, (role, class_, chat_id, has_job))
         connection.commit()
 
 
