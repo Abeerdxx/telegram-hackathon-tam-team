@@ -12,7 +12,7 @@ def what_can_i_do(chat_id, role):
         requests.get(
             TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id,
                                              "You are the boss 😎 you can do one of the following things:\n"
-                                             "/ans_q <Answer> to add an answer to a general question\n"
+                                             "@ans <Answer> to add an answer to a general question\n"
                                              "/announce <Announcement> to send an announcement to every parent in the class you "
                                              "are in\n"
                                              "/add_question <Question> to add a general question"))
@@ -82,30 +82,28 @@ def parse_command(com, chat_id, name):
                                                                               "and after it your answer"))
             else:
                 answer_the_last_question(parsed[1], chat_id)
-    elif first_command == "/ask":
-        if len(parsed) <= 1:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask "
-                                                                          "and after it your question"))
-        else:
-            ask_question(parsed[1], chat_id)
-    elif first_command == "/ask_privately":
-        if len(parsed) <= 1:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask_privately "
-                                                                          "and after it your question"))
-        else:
-            asker_id_ = ask_question2(parsed[1], chat_id, class_)
+    # elif first_command == "/ask":
+    #     if len(parsed) <= 1:
+    #         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask "
+    #                                                                       "and after it your question"))
+    #     else:
+    #         ask_question(parsed[1], chat_id)
+    # elif first_command == "/ask_privately":
+    #     if len(parsed) <= 1:
+    #         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask_privately "
+    #                                                                       "and after it your question"))
+    #     else:
+    #         asker_id_ = ask_question2(parsed[1], chat_id, class_)
     elif first_command == "@ans":
-        if len(parsed) <= 1:
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
-                                                                          "and after it your question"))
-        else:
-            return_answer_to_parent(asker_id_, parsed[1])
-    elif first_command == "/ans_q":
         if role == "parent":
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
         else:
-            answer_question(chat_id)
+            if len(parsed) <= 1:
+                requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
+                                                                              "and after it your question"))
+            else:
+                answer_question(chat_id, asker_id_, parsed[1])
     elif first_command == "/add_question":
         if role == "parent":
             requests.get(
@@ -142,9 +140,12 @@ def parse_command(com, chat_id, name):
                                                                       "for your role you can do the following:\n "))
         what_can_i_do(chat_id, role)
     else:
-        requests.get(
-            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
-        what_can_i_do(chat_id, role)
+        if role == "teacher":
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
+            what_can_i_do(chat_id, role)
+        else:
+            asker_id_ = ask_question(com, chat_id, class_)
     return ""
 
 

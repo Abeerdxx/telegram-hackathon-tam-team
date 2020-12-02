@@ -4,21 +4,19 @@ import requests
 the_question_to_answer = ""
 
 
-def answer_question(teacher_chat_id):
+def answer_question(teacher_chat_id, parent_chat_id, answer):
     with connection.cursor() as cursor:
-        query = "SELECT * FROM parentsQuestions LIMIT 1"
+        query = "SELECT * FROM parentsQuestions"
         cursor.execute(query)
         result = cursor.fetchone()
         if result is not None:
             ques = "'" + result['question'] + "'"
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, result['question']) +
-                         "\nwrite /answer to answer the question")
-            query2 = f"INSERT INTO parentsQuestionsQueue VALUES({result['chat_id']},{ques})"
+            query2 = f"INSERT INTO QA VALUES({result['chat_id']}, '{answer}', {ques}, {ques})"
             cursor.execute(query2)
             query3 = f"DELETE FROM parentsQuestions WHERE question = {ques}"
             cursor.execute(query3)
             connection.commit()
-
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, "The teacher says:\n" + answer))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, "There are no questions to answer! "
                                                                                   "Thank you and have a nice day! :) "))
