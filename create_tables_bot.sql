@@ -3,7 +3,8 @@ use maindb;
 create table users(
     role varchar(20),
     class varchar(100),
-    chat_id varchar(100) primary key
+    chat_id varchar(100) primary key,
+    job varchar(30)
 );
 
 create table parentsQuestions(

@@ -1,6 +1,6 @@
 import requests
 from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
-from parent import ask_question
+from parent import ask_question, asker_id, ask_question2
 from teacher import *
 
 role_ = ""
@@ -25,7 +25,7 @@ def what_can_i_do(chat_id, role):
                                                              " question and get answer right away!!"))
 
 
-def parse_command(com, chat_id,name):
+def parse_command(com, chat_id, name):
     global role_
     class_ = None
     role = None
@@ -42,6 +42,12 @@ def parse_command(com, chat_id,name):
             role = role_
     if first_command == "/start":
         start(chat_id)
+    elif first_command == "@ans":
+        if len(parsed) <= 1:
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
+                                                                          "and after it your answer"))
+        else:
+            return_answer_to_parent(asker_id, parsed[1])
     elif first_command.lower() == "teacher" or first_command.lower() == "parent":
         role_ = first_command
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\n write class <number>\n"
@@ -51,12 +57,13 @@ def parse_command(com, chat_id,name):
         add_user(chat_id, role_, class_)
         requests.get(
             TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
-                                                             " " + role_ + " In class " + class_))
+                                                                                   " " + role_ + " In class " + class_))
 
         what_can_i_do(chat_id, role_)
     elif first_command == "/answer":
         if role == "parent":
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
         else:
             if len(parsed) <= 1:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /answer "
@@ -68,15 +75,17 @@ def parse_command(com, chat_id,name):
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /ask_question "
                                                                           "and after it your question"))
         else:
-            ask_question(parsed[1], chat_id)
+            ask_question2(parsed[1], chat_id, class_)
     elif first_command == "/answer_question":
         if role == "parent":
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
         else:
             answer_question(chat_id)
     elif first_command == "/add_question":
         if role == "parent":
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not add a question 😔"))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not add a question 😔"))
         else:
             if len(parsed) <= 1:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /add_question "
@@ -85,7 +94,8 @@ def parse_command(com, chat_id,name):
                 add_question(parsed[1], chat_id)
     elif first_command == "@answer":
         if role == "parent":
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not answer a question 😉"))
         else:
             if len(parsed) <= 1:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @answer "
@@ -94,7 +104,8 @@ def parse_command(com, chat_id,name):
                 answer_add_question(parsed[1], chat_id)
     elif first_command == "/add_announcement":
         if role == "parent":
-            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not send announcement 🙃"))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You are a parent you can not send announcement 🙃"))
         else:
             if len(parsed) <= 1:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write /add_announcement "
@@ -107,7 +118,8 @@ def parse_command(com, chat_id,name):
                                                                       "for your role you can do the following:\n "))
         what_can_i_do(chat_id, role)
     else:
-        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
+        requests.get(
+            TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
         what_can_i_do(chat_id, role)
     return ""
 

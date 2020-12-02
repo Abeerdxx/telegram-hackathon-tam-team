@@ -80,3 +80,7 @@ def add_announcement(announcement, class_):
         if result:
             for parent_chat_id in result:
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id['chat_id'], announcement))
+
+
+def return_answer_to_parent(parent_chat_id, answer):
+    requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, answer))
