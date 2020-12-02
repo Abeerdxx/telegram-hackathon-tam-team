@@ -1,12 +1,14 @@
 import requests
 from config import connection, TOKEN, TELEGRAM_SEND_MESSAGE_URL
-from parent import ask_question
+from parent import ask_question, ask_question2
 from teacher import *
 
 role_ = ""
 class_2 = -1
 asker_id_ = None
 ques = None
+last_similar_questions = None
+parent_last_question = None
 
 
 def what_can_i_do(chat_id):
@@ -21,6 +23,7 @@ def what_can_i_do(chat_id):
 def parse_command(com, chat_id, name):
     global role_, asker_id_, ques
     global class_2
+    global last_similar_questions, parent_last_question
     class_ = None
     role = None
     parsed = com.split(" ", 1)  # maxsplit = 1
@@ -58,14 +61,14 @@ def parse_command(com, chat_id, name):
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
                                                                                        " the main teacher" + " in class " + class_2))
-            what_can_i_do(chat_id, role_)
+            what_can_i_do(chat_id)
     elif first_command.lower() == "no":
         if role_ == "teacher":
             add_user(chat_id, role_, class_2, "teacher")
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
                                                                                        " " + role_ + " In class " + class_2))
-            what_can_i_do(chat_id, role_)
+            what_can_i_do(chat_id)
     # elif first_command == "/answer":
     #     if role == "parent":
     #         requests.get(
@@ -136,14 +139,37 @@ def parse_command(com, chat_id, name):
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, f"Hey!! {name},\n"
                                                                       "My name is Tam how can I help you? \n"))
         if role == "teacher":
-            what_can_i_do(chat_id, role)
+            what_can_i_do(chat_id)
+    elif first_command[0] == '%':
+        if 0 <= int(first_command[1:]) < len(last_similar_questions):
+            with connection.cursor() as cursor:
+                query = f"SELECT * FROM QA WHERE question = '{last_similar_questions[int(first_command[1:])]}'"
+                cursor.execute(query)
+                res = cursor.fetchone()
+                if res is not None:
+                    requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "The answer is:\n" + res['answer']))
+    elif first_command.lower() == 'none':
+        with connection.cursor() as cursor:
+            query = f"INSERT INTO parentsQuestions VALUES({chat_id},'{parent_last_question}')"
+            cursor.execute(query)
+            ask_question2(parent_last_question, class_)
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "There is no answer yet, I will check with the "
+                                                                 "teacher and get back to you"))
+            connection.commit()
+    elif first_command.lower() == "help":
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Contact technical support:\n"
+                                                                      "Abeer Dow,  Phone: 0547570104\n"
+                                                                      "Basil Sgier,  Phone: 0533013218\n"
+                                                                      "Aseel Nassar,  Phone: 0509091207\n"
+                                                                      "❤ Tam Team ❤"))
     else:
         if role == "teacher":
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Unavailable command you can do the following:\n"))
             what_can_i_do(chat_id)
         else:
-            asker_id_ = ask_question(com, chat_id, class_)
+            asker_id_, parent_last_question, last_similar_questions = ask_question(com, chat_id, class_)
     return ""
 
 
@@ -165,8 +191,11 @@ def start(chat_id):
         result = cursor.fetchone()
         if result is not None:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Hi, what would you like to do today?\n"
-                                                                          "it seems you are already registered.\n"
-                                                                          "Talk to technical support if you want to change register\n"
-                                                                          "Basil sgier : 0533013218"))
+                                                                          "It seems you are already registered.\n"
+                                                                          "Contact technical support if you want to change your registration\n"
+                                                                          "Basil Sgier,  Phone: 0533013218\n"
+                                                                          "Abeer Dow,  Phone: 0547570104\n"
+                                                                          "Aseel Nassar,  Phone: 0509091207\n"
+                                                                          "❤ Tam Team ❤"))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Are you a parent or a teacher?"))
