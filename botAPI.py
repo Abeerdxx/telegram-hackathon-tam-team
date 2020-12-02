@@ -6,20 +6,20 @@ from teacher import *
 role_ = ""
 class_2 = -1
 asker_id_ = None
+ques = None
 
 
 def what_can_i_do(chat_id, role):
     requests.get(
         TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id,
                                          "You are the boss 😎 you can do one of the following things:\n"
-                                         "@ans <Answer> to add an answer to a general question\n"
                                          "/announce <Announcement> to send an announcement to every parent in the class you "
                                          "are in\n"
                                          "/add_question <Question> to add a general question"))
 
 
 def parse_command(com, chat_id, name):
-    global role_, asker_id_
+    global role_, asker_id_, ques
     global class_2
     class_ = None
     role = None
@@ -39,7 +39,7 @@ def parse_command(com, chat_id, name):
         start(chat_id)
     elif first_command.lower() == "teacher" or first_command.lower() == "parent":
         role_ = first_command.lower()
-        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\n write class <number>\n"
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "What class are you in?\nWrite class <number>, "
                                                                       "so I can know to which class I should add you 😉"))
     elif first_command.lower() == "class":
         class_2 = parsed[1]
@@ -51,14 +51,13 @@ def parse_command(com, chat_id, name):
             add_user(chat_id, role_, class_2, None)
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
-                                                                                       " " + role_ + " In class " + class_2))
-            what_can_i_do(chat_id, role_)
+                                                                                       " " + role_ + " in class " + class_2))
     elif first_command.lower() == "yes":
         if role_ == "teacher":
             add_user(chat_id, role_, class_2, "main teacher")
             requests.get(
                 TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Welcome!! " + name + " you have been registered as"
-                                                                                       " the main teacher" + " In class " + class_2))
+                                                                                       " the main teacher" + " in class " + class_2))
             what_can_i_do(chat_id, role_)
     elif first_command.lower() == "no":
         if role_ == "teacher":
@@ -98,7 +97,7 @@ def parse_command(com, chat_id, name):
                 requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "You should write @ans "
                                                                               "and after it your question"))
             else:
-                answer_question(chat_id, asker_id_, parsed[1])
+                ques = answer_question(chat_id, asker_id_, parsed[1])
     elif first_command == "/add_question":
         if role == "parent":
             requests.get(
@@ -129,11 +128,15 @@ def parse_command(com, chat_id, name):
                                                                               "and after it your announcement"))
             else:
                 add_announcement(parsed[1], class_)
+    elif first_command.lower() == "general":
+        requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "Saved in FAQ"))
+    elif first_command.lower() == "private":
+        remove_question(chat_id, ques)
     elif first_command.lower() == "hello" or first_command.lower() == "hey" or first_command.lower() == "hi" or first_command.lower() == "sup":
         requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, f"Hey!! {name},\n"
-                                                                      "My name is Tam how can I help you? \n"
-                                                                      "for your role you can do the following:\n "))
-        what_can_i_do(chat_id, role)
+                                                                      "My name is Tam how can I help you? \n"))
+        if role == "teacher":
+            what_can_i_do(chat_id, role)
     else:
         if role == "teacher":
             requests.get(

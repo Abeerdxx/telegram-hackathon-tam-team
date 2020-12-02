@@ -17,9 +17,13 @@ def answer_question(teacher_chat_id, parent_chat_id, answer):
             cursor.execute(query3)
             connection.commit()
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, "The teacher says:\n" + answer))
+            requests.get(
+                TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, "Is this a general or a private question?"
+                                                                         "(general/ private)"))
         else:
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, "There are no questions to answer! "
                                                                                   "Thank you and have a nice day! :) "))
+    return ques
 
 
 def answer_the_last_question(answer, teacher_chat_id):
@@ -82,3 +86,15 @@ def add_announcement(announcement, class_):
 
 def return_answer_to_parent(parent_chat_id, answer):
     requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, parent_chat_id, "The teacher says:\n" + answer))
+
+
+def remove_question(teacher_chat_id, ques):
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM QA where question = {ques}"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is not None:
+            query3 = f"DELETE FROM QA WHERE question = {ques}"
+            cursor.execute(query3)
+            connection.commit()
+            requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, teacher_chat_id, "okay 🤗"))
