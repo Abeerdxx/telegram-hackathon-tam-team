@@ -1,5 +1,6 @@
 from config import connection, TELEGRAM_SEND_MESSAGE_URL, TOKEN
 import requests
+from keywords import get_keywords
 
 the_question_to_answer = ""
 
@@ -11,7 +12,9 @@ def answer_question(teacher_chat_id, parent_chat_id, answer):
         result = cursor.fetchone()
         if result is not None:
             ques = "'" + result['question'] + "'"
-            query2 = f"INSERT INTO QA VALUES({result['chat_id']}, '{answer}', {ques}, {ques})"
+            lques = [result['question']]
+            keywords = get_keywords(lques)
+            query2 = f"INSERT INTO QA VALUES({result['chat_id']}, '{answer}', {ques}, '{keywords}')"
             cursor.execute(query2)
             query3 = f"DELETE FROM parentsQuestions WHERE question = {ques}"
             cursor.execute(query3)
@@ -37,7 +40,9 @@ def answer_the_last_question(answer, teacher_chat_id):
                                                  + answer))
             answer = "'" + answer + "'"
             ques = "'" + result['question'] + "'"
-            query2 = f"INSERT INTO QA VALUES({teacher_chat_id}, {answer}, {ques}, {ques})"
+            lques = [result['question']]
+            keywords = get_keywords(lques)
+            query2 = f"INSERT INTO QA VALUES({teacher_chat_id}, {answer}, {ques}, '{keywords}')"
             cursor.execute(query2)
             query3 = f"DELETE FROM parentsQuestionsQueue WHERE question = {ques}"
             cursor.execute(query3)
@@ -67,7 +72,9 @@ def answer_add_question(answer, chat_id):
         cursor.execute(query)
         result = cursor.fetchone()
         if result is None:
-            query = f"INSERT INTO QA VALUES({chat_id}, '{answer}', '{the_question_to_answer}' , '{the_question_to_answer}')"
+            lquest = [the_question_to_answer]
+            keywords = get_keywords(lquest)
+            query = f"INSERT INTO QA VALUES({chat_id}, '{answer}', '{the_question_to_answer}' , '{keywords}')"
             cursor.execute(query)
             connection.commit()
             requests.get(TELEGRAM_SEND_MESSAGE_URL.format(TOKEN, chat_id, "question added successfully!"))
